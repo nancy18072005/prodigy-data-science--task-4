@@ -1,0 +1,42 @@
+# 📌 Step 1: Import Libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from wordcloud import WordCloud
+import re
+
+# 📌 Step 2: Load the Dataset (Upload or Mount from Google Drive)
+from google.colab import files
+uploaded = files.upload()
+
+# Replace the filename with the actual uploaded filename
+df = pd.read_csv('Entity_Sentiment.csv')
+df.head()
+
+# 📌 Step 3: Clean the Tweet Text
+def clean_text(text):
+    text = re.sub(r"http\S+", "", str(text))  # remove URLs
+    text = re.sub(r"@\w+", "", text)          # remove mentions
+    text = re.sub(r"#\w+", "", text)          # remove hashtags
+    text = re.sub(r"[^A-Za-z\s]", "", text)   # remove special chars
+    return text.lower()
+
+df['cleaned_content'] = df['content'].apply(clean_text)
+
+# 📌 Step 4: Visualize Sentiment Distribution
+plt.figure(figsize=(6,4))
+sns.countplot(data=df, x='sentiment', palette='Set2')
+plt.title("Sentiment Distribution")
+plt.xlabel("Sentiment")
+plt.ylabel("Tweet Count")
+plt.show()
+
+# 📌 Step 5: Word Clouds by Sentiment
+for sentiment in df['sentiment'].unique():
+    text = " ".join(df[df['sentiment'] == sentiment]['cleaned_content'])
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.title(f"Word Cloud - {sentiment} Tweets", fontsize=16)
+    plt.axis('off')
+    plt.show()
